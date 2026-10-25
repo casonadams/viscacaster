@@ -1,0 +1,13 @@
+[package]
+name = "viscacaster"
+description = "Universal VISCA PTZ Camera & Broadcast Presentation Controller"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dirs = "7.0.0"
+eframe = "0.33.3"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+serialport = "4.10.1"
+tiny_http = "0.12.0"

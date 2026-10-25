@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ViscaCaster — Universal VISCA PTZ & Broadcast Director</title>
+  <meta name="description" content="Universal cross-platform desktop application for controlling VISCA PTZ cameras (Serial & IP) with live broadcast overlays for worship and presentations.">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0ea5e9;
+      --green: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      padding: 0 20px;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 0 80px;
+    }
+    header {
+      text-align: center;
+      padding: 60px 0 40px;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 54px;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 30%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 20px;
+      color: var(--muted);
+      max-width: 720px;
+      margin: 0 auto 36px;
+    }
+    .downloads {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 50px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 12px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
+    }
+    .btn-primary {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: #0369a1;
+      border-color: #0369a1;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin: 50px 0;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+    }
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card p {
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .obs-section {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 14px;
+      padding: 36px;
+      margin: 50px 0;
+    }
+    .obs-section h2 {
+      font-size: 28px;
+      margin-bottom: 16px;
+      color: #ffffff;
+    }
+    .code-box {
+      background: #0b1120;
+      border: 1px solid #1e293b;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 16px;
+      color: var(--accent);
+      margin: 16px 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    th {
+      color: var(--accent);
+    }
+    footer {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--muted);
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Open Source • Cross-Platform • Zero Dependencies</div>
+      <h1>ViscaCaster</h1>
+      <p class="subtitle">Universal desktop application for VISCA PTZ camera control (Serial &amp; Network IP) paired with an embedded 60 FPS broadcast presentation engine for worship services and live events.</p>
+      
+      <div class="downloads">
+        <a href="https://github.com/casonadams/viscacaster/releases/latest" class="btn btn-primary">⬇ Download Latest Release</a>
+        <a href="https://github.com/casonadams/viscacaster" class="btn">View on GitHub</a>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h3>🎥 Universal VISCA Control</h3>
+        <p>Supports both <b>Serial RS-232/USB</b> adapters (Keyspan, FTDI, CP210x, CH340) and <b>VISCA-over-IP</b> (UDP port 52381 / 1259) across Sony, PTZOptics, BirdDog, and generic PTZ cameras.</p>
+      </div>
+
+      <div class="card">
+        <h3>🔍 3-Tier Auto-Discovery</h3>
+        <p>Instant camera detection via active VISCA serial handshake, USB hardware vendor filtering, and local network <b>ONVIF WS-Discovery</b> probe with one-click latching.</p>
+      </div>
+
+      <div class="card">
+        <h3>🎵 LDS Hymn Engine (1–341+)</h3>
+        <p>Embedded 341-hymn index from <i>Hymns of The Church of Jesus Christ of Latter-day Saints</i>. Instant lookup by number (e.g. <code>193</code>), title search, and live verse carousel.</p>
+      </div>
+
+      <div class="card">
+        <h3>🏷️ Broadcast Lower Thirds</h3>
+        <p>Animated lower thirds for speakers, conducting officers, and sermon titles. <b>Smart Director</b> automatically triggers lower thirds when recalling Preset 1 (Podium).</p>
+      </div>
+
+      <div class="card">
+        <h3>📢 Marquee Announcement Ticker</h3>
+        <p>Hardware-accelerated 60 FPS scrolling ticker along the bottom of the broadcast feed for meeting times, nursery, and fellowship announcements.</p>
+      </div>
+
+      <div class="card">
+        <h3>⚡ Rock-Solid Rust Core</h3>
+        <p>Built with <code>egui</code> and pure Rust. Single self-contained binary, zero C/GTK runtime baggage, zero crash risk for OBS, and instant launch on Windows, macOS, and Linux.</p>
+      </div>
+    </div>
+
+    <div class="obs-section">
+      <h2>OBS Studio 30-Second Setup</h2>
+      <p>ViscaCaster embeds an internal web server that delivers transparent 60 FPS graphics directly to OBS Studio:</p>
+      <div class="code-box">http://localhost:8080/overlay</div>
+      <ol style="margin-left: 20px; color: var(--muted); line-height: 1.8;">
+        <li>In OBS Studio, click <b>[+]</b> under <b>Sources</b> and select <b>Browser</b>.</li>
+        <li>Set the URL to <code>http://localhost:8080/overlay</code>.</li>
+        <li>Set Width to <code>1920</code> and Height to <code>1080</code>.</li>
+        <li>Uncheck <i>"Shutdown source when not visible"</i> and check <i>"Refresh browser when scene becomes active"</i>.</li>
+        <li>Position this Browser source above your camera video source.</li>
+      </ol>
+    </div>
+
+    <div class="card" style="margin-bottom: 50px;">
+      <h3 style="margin-bottom: 20px;">Keyboard Shortcuts</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Shortcut</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><b>&uarr; &darr; &larr; &rarr;</b></td><td>Pan &amp; Tilt (continuous while held; supports simultaneous diagonals)</td></tr>
+          <tr><td><b>Page Up / Page Down</b></td><td>Optical Zoom In / Zoom Out</td></tr>
+          <tr><td><b>1 &ndash; 6</b></td><td>Recall Preset 1 &ndash; 6 (Go To)</td></tr>
+          <tr><td><b>Shift + 1 &ndash; 6</b></td><td>Save current position to Preset 1 &ndash; 6 (Mark)</td></tr>
+          <tr><td><b>Home / H</b></td><td>Center camera to Home position</td></tr>
+          <tr><td><b>Space</b></td><td>Emergency Stop (instantly halts all motor drives)</td></tr>
+          <tr><td><b>P</b></td><td>Toggle Camera Power (Standby / Active)</td></tr>
+          <tr><td><b>M</b></td><td>Unmute Video &amp; Reset Auto-Exposure</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer>
+      <p>Built with ❤️ by <a href="https://github.com/casonadams">Cason Adams</a> • Distributed under MIT / Apache-2.0</p>
+    </footer>
+  </div>
+</body>
+</html>

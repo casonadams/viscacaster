@@ -1,0 +1,201 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    name: "Release Please"
+    runs-on: ubuntu-latest
+    outputs:
+      pr: ${{ steps.release.outputs.pr }}
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  update-workspace:
+    runs-on: ubuntu-latest
+    name: "Update Cargo.lock on Release PR"
+    needs: release-please
+    if: ${{ needs.release-please.outputs.pr }}
+    steps:
+      - name: Checkout release PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Linux build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev libxkbcommon-dev libwayland-dev
+
+      - name: Install Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          cache: false
+          rustflags: ""
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Sync Cargo.lock
+        run: |
+          cargo check
+          if git diff --quiet -- Cargo.lock; then
+            echo "Cargo.lock is already up to date"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add Cargo.lock
+            git commit -m "chore: update Cargo.lock for release"
+            git push
+          fi
+
+  build-release:
+    name: "Build ${{ matrix.target }}"
+    needs: release-please
+    if: ${{ needs.release-please.outputs.releases_created == 'true' }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-24.04
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev libxkbcommon-dev libwayland-dev
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.target }}
+          cache: false
+          rustflags: ""
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package and upload (Linux & macOS)
+        if: runner.os != 'Windows'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${TAG##*v}"
+          name="viscacaster-${version}-${{ matrix.target }}"
+          package_dir="$(mktemp -d)"
+          trap 'rm -rf "$package_dir"' EXIT
+          install -m 755 "target/${{ matrix.target }}/release/viscacaster" "$package_dir/viscacaster"
+          tar czf "$name.tar.gz" -C "$package_dir" viscacaster
+          gh release upload "$TAG" "$name.tar.gz" --clobber
+
+      - name: Build and upload Linux .deb and .rpm packages
+        if: runner.os == 'Linux'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${TAG##*v}"
+          deb_arch="amd64"
+          rpm_arch="x86_64"
+          bin_path="$(pwd)/target/${{ matrix.target }}/release/viscacaster"
+          work_dir="$(mktemp -d)"
+          trap 'rm -rf "$work_dir"' EXIT
+
+          # 1. Build .deb
+          deb_root="$work_dir/deb"
+          mkdir -p "$deb_root/DEBIAN" "$deb_root/usr/bin"
+          install -m 755 "$bin_path" "$deb_root/usr/bin/viscacaster"
+          cat > "$deb_root/DEBIAN/control" <<EOF
+          Package: viscacaster
+          Version: ${version}
+          Section: video
+          Priority: optional
+          Architecture: ${deb_arch}
+          Maintainer: Cason Adams <casonadams@users.noreply.github.com>
+          Homepage: https://github.com/casonadams/viscacaster
+          Description: Universal VISCA PTZ Camera & Broadcast Presentation Controller
+          EOF
+          sed -i 's/^          //' "$deb_root/DEBIAN/control"
+          deb_file="viscacaster_${version}_${deb_arch}.deb"
+          dpkg-deb --build --root-owner-group "$deb_root" "$deb_file"
+
+          # 2. Build .rpm
+          command -v rpmbuild >/dev/null 2>&1 || (sudo apt-get update && sudo apt-get install -y rpm)
+          rpm_top="$work_dir/rpm"
+          mkdir -p "$rpm_top/BUILD" "$rpm_top/RPMS" "$rpm_top/SOURCES" "$rpm_top/SPECS" "$rpm_top/SRPMS"
+          cat > "$rpm_top/SPECS/viscacaster.spec" <<EOF
+          %define _build_id_links none
+          Name: viscacaster
+          Version: ${version}
+          Release: 1
+          Summary: Universal VISCA PTZ Camera & Broadcast Presentation Controller
+          License: MIT OR Apache-2.0
+          URL: https://github.com/casonadams/viscacaster
+          AutoReqProv: no
+          %description
+          Universal VISCA PTZ Camera and Broadcast Presentation Controller for live worship and meetings.
+          %install
+          mkdir -p %{buildroot}/usr/bin
+          install -m 755 "$bin_path" %{buildroot}/usr/bin/viscacaster
+          %files
+          /usr/bin/viscacaster
+          EOF
+          sed -i 's/^          //' "$rpm_top/SPECS/viscacaster.spec"
+          rpmbuild -bb --target "$rpm_arch" --define "_topdir $rpm_top" "$rpm_top/SPECS/viscacaster.spec"
+          rpm_file="viscacaster-${version}-1.${rpm_arch}.rpm"
+          cp "$rpm_top/RPMS/$rpm_arch/"*.rpm "$rpm_file"
+
+          gh release upload "$TAG" "$deb_file" "$rpm_file" --clobber
+
+      - name: Package and upload (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = $env:TAG -replace '^.*v', ''
+          $name = "viscacaster-$version-${{ matrix.target }}"
+          Compress-Archive -Path "target/${{ matrix.target }}/release/viscacaster.exe" -DestinationPath "$name.zip"
+          gh release upload $env:TAG "$name.zip" --clobber
+
+  checksums:
+    name: "Generate SHA256SUMS"
+    needs: [release-please, build-release]
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Download release assets
+        run: gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir dist --clobber
+
+      - name: Generate and upload SHA256SUMS
+        run: |
+          rm -f dist/SHA256SUMS
+          cd dist
+          sha256sum -- * > SHA256SUMS
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" SHA256SUMS --clobber
