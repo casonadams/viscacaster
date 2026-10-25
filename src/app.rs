@@ -53,7 +53,7 @@ pub struct PTZApp {
 
     // Lower Thirds
     speaker_name: String,
-    sermon_title: String,
+    speaker_title: String,
     lt_live: bool,
     auto_lt_on_preset1: bool,
     lt_auto_hide_at: Option<Instant>,
@@ -142,7 +142,7 @@ impl PTZApp {
             hymn_tx,
 
             speaker_name: "Speaker Name".into(),
-            sermon_title: "Speaker".into(),
+            speaker_title: "Speaker".into(),
             lt_live: false,
             auto_lt_on_preset1: true,
             lt_auto_hide_at: None,
@@ -277,7 +277,7 @@ impl PTZApp {
         let mut st = self.overlay_server.state.write().unwrap();
         st.lower_third = LowerThirdData {
             title: self.speaker_name.clone(),
-            subtitle: self.sermon_title.clone(),
+            subtitle: self.speaker_title.clone(),
             visible: self.lt_live,
         };
 
@@ -934,7 +934,7 @@ impl PTZApp {
 
             if self.hymn_loading {
                 ui.add_space(4.0);
-                ui.label(RichText::new("⏳ Downloading hymn lyrics from Church website...").color(Color32::from_rgb(245, 158, 11)).strong());
+                ui.label(RichText::new("Loading hymn lyrics from Church library...").color(Color32::from_rgb(245, 158, 11)).strong());
             }
         });
 
@@ -1106,18 +1106,18 @@ impl PTZApp {
             });
 
             ui.horizontal(|ui| {
-                ui.label("Sermon / Title: ");
-                if ui.add_sized(Vec2::new(ui.available_width() - 8.0, 26.0), egui::TextEdit::singleline(&mut self.sermon_title)).changed() && self.lt_live {
+                ui.label("Calling / Topic:");
+                if ui.add_sized(Vec2::new(ui.available_width() - 8.0, 26.0), egui::TextEdit::singleline(&mut self.speaker_title)).changed() && self.lt_live {
                     self.sync_overlay_state();
                 }
             });
 
             // Quick role buttons
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 ui.label(RichText::new("Quick Roles:").size(11.0).color(Color32::from_rgb(148, 163, 184)));
-                for role in ["Bishop", "Conducting", "Speaker", "Youth Speaker", "Chorister", "Organist"] {
+                for role in ["Conducting", "Presiding", "Bishopric", "Speaker", "Youth Speaker", "Chorister", "Organist", "Closing Remarks", "Testimony"] {
                     if ui.button(role).clicked() {
-                        self.sermon_title = role.to_string();
+                        self.speaker_title = role.to_string();
                         if self.lt_live {
                             self.sync_overlay_state();
                         }
